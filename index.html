@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELITE AUTO WASH EXPRESS | Billing System</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    
+    <!-- html2canvas for image generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #0f3460;
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #333333;
+            --success: #27ae60;
+            --border-radius: 12px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(15, 52, 96, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            animation: containerAppear 0.6s ease-out;
+        }
+
+        @keyframes containerAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            padding: 35px 25px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
+            animation: headerGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes headerGlow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .logo-container {
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+            animation: logoPulse 2s infinite;
+            position: relative;
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 20px 60px rgba(212, 175, 55, 0.6); }
+        }
+
+        .logo-image {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-tagline {
+            font-size: 0.95rem;
+            color: var(--gold-light);
+            letter-spacing: 1px;
+            font-style: italic;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .app-body {
+            padding: 35px 30px;
+            background: var(--white);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--light-gray);
+            font-family: inherit;
+            color: var(--dark-gray);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(15, 52, 96, 0.08);
+            background: var(--white);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder {
+            color: #999;
+        }
+
+        .payment-modes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .payment-option {
+            padding: 16px;
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--light-gray);
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-option:hover {
+            border-color: var(--accent);
+            background: #f0f4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .payment-option:active {
+            transform: scale(0.98);
+        }
+
+        .payment-option.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: 0 8px 25px rgba(15, 52, 96, 0.3);
+            animation: optionSelect 0.3s ease;
+        }
+
+        @keyframes optionSelect {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            color: var(--primary);
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .submit-btn .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .loading-spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Receipt Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--medium-gray);
+            border-radius: 10px;
+        }
+
+        /* Receipt Styling */
+        .receipt {
+            padding: 35px 30px;
+            background: var(--white);
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .receipt::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--accent), var(--gold));
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed var(--medium-gray);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+        }
+
+        .receipt-logo-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 3px solid var(--gold);
+        }
+
+        .receipt-logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .receipt-tagline {
+            font-size: 0.8rem;
+            color: var(--gold);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .receipt-token {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: var(--white);
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            display: inline-block;
+            margin: 10px 0;
+            box-shadow: 0 10px 30px rgba(15, 52, 96, 0.3);
+        }
+
+        .receipt-details {
+            margin: 25px 0;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dotted var(--medium-gray);
+            font-size: 0.95rem;
+        }
+
+        .receipt-label {
+            color: #666;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .receipt-value {
+            color: var(--dark-gray);
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .receipt-amount {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 2px solid var(--medium-gray);
+        }
+
+        .receipt-amount-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            border-top: 2px dashed var(--medium-gray);
+            padding-top: 25px;
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .receipt-thankyou {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            padding: 20px 30px;
+            background: var(--light-gray);
+            border-radius: 0 0 24px 24px;
+            border-top: 1px solid var(--medium-gray);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            box-shadow: 0 5px 20px rgba(37, 211, 102, 0.3);
+        }
+
+        .whatsapp-btn:hover {
+            background: #1ea952;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+        }
+
+        .close-btn {
+            background: var(--white);
+            color: var(--dark-gray);
+            border: 2px solid var(--medium-gray);
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            border-color: #ccc;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 2000;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            font-size: 0.95rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            from { 
+                transform: translateX(120%); 
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0); 
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+
+        /* Tablet Devices (768px and below) */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+                align-items: flex-start;
+                padding-top: 30px;
+            }
+
+            .app-container {
+                max-width: 500px;
+                border-radius: 20px;
+            }
+
+            .app-header {
+                padding: 30px 20px 25px;
+            }
+
+            .brand-title {
+                font-size: 1.7rem;
+                letter-spacing: 1.5px;
+            }
+
+            .brand-tagline {
+                font-size: 0.9rem;
+            }
+
+            .logo-icon {
+                width: 70px;
+                height: 70px;
+                padding: 7px;
+            }
+
+            .logo-image {
+                width: 48px;
+                height: 48px;
+            }
+
+            .app-body {
+                padding: 28px 22px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-input {
+                padding: 14px 18px;
+                font-size: 0.95rem;
+            }
+
+            .payment-option {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+
+            .submit-btn {
+                padding: 16px;
+                font-size: 1.05rem;
+            }
+
+            .modal-content {
+                max-width: 420px;
+            }
+
+            .receipt {
+                padding: 28px 22px;
+            }
+
+            .receipt-logo {
+                font-size: 1.4rem;
+            }
+
+            .receipt-logo-img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .receipt-token {
+                font-size: 1.5rem;
+                padding: 12px 20px;
+            }
+
+            .receipt-amount-value {
+                font-size: 1.8rem;
+            }
+
+            .modal-actions {
+                padding: 18px 22px;
+                gap: 10px;
+            }
+
+            .action-btn {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+
+            .notification {
+                top: 15px;
+                right: 15px;
+                left: 15px;
+                max-width: none;
+                text-align: center;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Mobile Devices (480px and below) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                padding-top: 20px;
+                align-items: flex-start;
+            }
+
+            .app-container {
+                max-width: 100%;
+                border-radius: 16px;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .app-header {
+                padding: 25px 16px 22px;
+            }
+
+            .brand-title {
+                font-size: 1.35rem;
+                letter-spacing: 1px;
+            }
+
+            .brand-tagline {
+                font-size: 0.78rem;
+                letter-spacing: 0.5px;
+            }
+
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                padding: 6px;
+            }
+
+            .logo-image {
+                width: 40px;
+                height: 40px;
+            }
+
+            .app-body {
+                padding: 22px 16px;
+            }
+
+            .form-group {
+                margin-bottom: 18px;
+            }
+
+            .form-label {
+                font-size: 0.75rem;
+                margin-bottom: 8px;
+                letter-spacing: 0.5px;
+            }
+
+            .form-input {
+                padding: 13px 16px;
+                font-size: 0.9rem;
+                border-radius: 10px;
+                border-width: 1.5px;
+            }
+
+            .payment-modes {
+                gap: 10px;
+            }
+
+            .payment-option {
+                padding: 12px;
+                font-size: 0.88rem;
+                border-radius: 10px;
+            }
+
+            .submit-btn {
+                padding: 15px;
+                font-size: 1rem;
+                border-radius: 10px;
+                letter-spacing: 1px;
+                margin-top: 10px;
+            }
+
+            .modal-content {
+                max-width: 100%;
+                border-radius: 16px;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .receipt {
+                padding: 22px 16px;
+            }
+
+            .receipt-logo {
+                font-size: 1.2rem;
+                letter-spacing: 1px;
+            }
+
+            .receipt-logo-img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .receipt-tagline {
+                font-size: 0.7rem;
+                margin-bottom: 15px;
+            }
+
+            .receipt-token {
+                font-size: 1.3rem;
+                padding: 10px 16px;
+                letter-spacing: 2px;
+                border-radius: 10px;
+            }
+
+            .receipt-row {
+                font-size: 0.85rem;
+                padding: 10px 0;
+            }
+
+            .receipt-label {
+                font-size: 0.78rem;
+            }
+
+            .receipt-amount {
+                padding: 15px;
+                margin: 20px 0;
+            }
+
+            .receipt-amount-value {
+                font-size: 1.6rem;
+            }
+
+            .receipt-footer {
+                font-size: 0.8rem;
+                padding-top: 20px;
+                margin-top: 20px;
+            }
+
+            .receipt-thankyou {
+                font-size: 1rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+                padding: 16px;
+                gap: 8px;
+            }
+
+            .action-btn {
+                padding: 13px;
+                font-size: 0.9rem;
+                border-radius: 10px;
+            }
+
+            .notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                padding: 14px 18px;
+                font-size: 0.85rem;
+                border-radius: 10px;
+            }
+        }
+
+        /* Small Mobile Devices (360px and below) */
+        @media (max-width: 360px) {
+            .brand-title {
+                font-size: 1.2rem;
+            }
+
+            .brand-tagline {
+                font-size: 0.7rem;
+            }
+
+            .logo-icon {
+                width: 50px;
+                height: 50px;
+                padding: 5px;
+            }
+
+            .logo-image {
+                width: 35px;
+                height: 35px;
+            }
+
+            .form-input {
+                padding: 12px 14px;
+                font-size: 0.85rem;
+            }
+
+            .payment-option {
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+
+            .submit-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+
+            .receipt-token {
+                font-size: 1.2rem;
+            }
+
+            .receipt-logo-img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .receipt-amount-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Landscape Mode for Mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                align-items: center;
+            }
+
+            .app-container {
+                max-width: 450px;
+                margin: 10px auto;
+            }
+
+            .app-header {
+                padding: 20px;
+            }
+
+            .logo-icon {
+                width: 50px;
+                height: 50px;
+                margin-bottom: 10px;
+            }
+
+            .brand-title {
+                font-size: 1.3rem;
+            }
+
+            .app-body {
+                padding: 20px;
+            }
+
+            .modal-content {
+                max-width: 400px;
+                max-height: 80vh;
+            }
+        }
+
+        /* Large Screens (1200px and above) */
+        @media (min-width: 1200px) {
+            .app-container {
+                max-width: 600px;
+            }
+
+            .brand-title {
+                font-size: 2.2rem;
+            }
+
+            .app-body {
+                padding: 40px 35px;
+            }
+
+            .form-input {
+                padding: 18px 22px;
+                font-size: 1.05rem;
+            }
+
+            .submit-btn {
+                padding: 20px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .app-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+
+            .modal-overlay {
+                position: static;
+                background: none;
+            }
+
+            .modal-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <img src="logo.png" alt="ELITE AUTO WASH EXPRESS Logo" class="logo-image">
+                </div>
+            </div>
+            <h1 class="brand-title">ELITE AUTO WASH EXPRESS</h1>
+            <p class="brand-tagline">✨ Divine Shrine for Your Blessed Ride ✨</p>
+        </div>
+
+        <!-- Form -->
+        <div class="app-body">
+            <form id="billingForm" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="vehicleNo">🚗 Vehicle Number</label>
+                    <input type="text" id="vehicleNo" class="form-input" 
+                           placeholder="Enter vehicle number (e.g., KA 01 AB 1234)" 
+                           required autocomplete="off" maxlength="20">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="amount">💰 Amount Paid (₹)</label>
+                    <input type="number" id="amount" class="form-input" 
+                           placeholder="Enter amount in rupees" min="1" max="999999" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">💳 Payment Mode</label>
+                    <div class="payment-modes">
+                        <div class="payment-option selected" data-mode="cash" onclick="selectPaymentMode('cash', this)">
+                            💵 Cash
+                        </div>
+                        <div class="payment-option" data-mode="upi" onclick="selectPaymentMode('upi', this)">
+                            📱 UPI
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-content">
+                        <span id="btnText">Generate Receipt</span>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-content">
+            <div class="receipt" id="receiptContent">
+                <!-- Receipt will be generated dynamically -->
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn whatsapp-btn" onclick="sendViaWhatsApp()">
+                    📤 Send via WhatsApp
+                </button>
+                <button class="action-btn close-btn" onclick="closeReceipt()">
+                    ✕ Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // Replace with your Firebase config
+        // ============================================
+        
+const firebaseConfig = {
+  apiKey: "AIzaSyAxQoFW6QiaazIcvkEPsYbnTv7zfKe8c-Y",
+  authDomain: "patternetweb.firebaseapp.com",
+  databaseURL: "https://patternetweb-default-rtdb.firebaseio.com",
+  projectId: "patternetweb",
+  storageBucket: "patternetweb.firebasestorage.app",
+  messagingSenderId: "78400752693",
+  appId: "1:78400752693:web:540fbbcab615e6b078b57c"
+};
+
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        let selectedPaymentMode = 'cash';
+        let currentReceiptData = null;
+
+        // ============================================
+        // PAYMENT MODE SELECTION
+        // ============================================
+        function selectPaymentMode(mode, element) {
+            selectedPaymentMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        // ============================================
+        // GENERATE SEQUENTIAL TOKEN FROM FIRESTORE
+        // ============================================
+        async function generateToken() {
+            try {
+                // Get the latest bill to find the last token number
+                const snapshot = await db.collection('bills')
+                    .orderBy('tokenNumber', 'desc')
+                    .limit(1)
+                    .get();
+                
+                let nextNumber = 1;
+                
+                if (!snapshot.empty) {
+                    const lastBill = snapshot.docs[0].data();
+                    if (lastBill.tokenNumber) {
+                        nextNumber = lastBill.tokenNumber + 1;
+                    }
+                }
+                
+                // Format: ELITE-0001, ELITE-0002, etc.
+                const paddedNumber = String(nextNumber).padStart(4, '0');
+                const token = `ELITE-${paddedNumber}`;
+                
+                return {
+                    token: token,
+                    tokenNumber: nextNumber
+                };
+            } catch (error) {
+                console.error('Error generating token:', error);
+                // Fallback token if Firestore fails
+                const fallbackNumber = Date.now();
+                const paddedFallback = String(fallbackNumber).slice(-4);
+                return {
+                    token: `ELITE-${paddedFallback}`,
+                    tokenNumber: fallbackNumber
+                };
+            }
+        }
+
+        // ============================================
+        // FORMAT DATE AND TIME
+        // ============================================
+        function formatDateTime() {
+            const now = new Date();
+            
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            };
+            
+            return {
+                date: now.toLocaleDateString('en-IN', dateOptions),
+                time: now.toLocaleTimeString('en-IN', timeOptions),
+                isoDate: now.toISOString().split('T')[0],
+                isoTime: now.toTimeString().split(' ')[0]
+            };
+        }
+
+        // ============================================
+        // SAVE TO FIRESTORE
+        // ============================================
+        async function saveToFirestore(receiptData) {
+            try {
+                const docRef = await db.collection('bills').add({
+                    token: receiptData.token,
+                    tokenNumber: receiptData.tokenNumber,
+                    vehicleNo: receiptData.vehicleNo,
+                    amount: receiptData.amount,
+                    paymentMode: receiptData.paymentMode,
+                    date: receiptData.date,
+                    time: receiptData.time,
+                    isoDate: receiptData.isoDate,
+                    isoTime: receiptData.isoTime,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Receipt saved with ID:', docRef.id);
+                console.log('🎫 Token:', receiptData.token, '| Number:', receiptData.tokenNumber);
+                return docRef.id;
+            } catch (error) {
+                console.error('❌ Error saving to Firestore:', error);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // GENERATE RECEIPT HTML
+        // ============================================
+        function generateReceiptHTML(data) {
+            return `
+                <div class="receipt-header">
+                    <img src="logo.png" alt="ELITE AUTO WASH EXPRESS" class="receipt-logo-img">
+                    <div class="receipt-logo">🚗 ELITE AUTO WASH EXPRESS</div>
+                    <div class="receipt-tagline">✨ Divine Shrine for Your Blessed Ride ✨</div>
+                    <div class="receipt-token">${data.token}</div>
+                    <div style="font-size: 0.75rem; color: #999; margin-top: 8px; font-weight: 600;">
+                        Token No. #${data.tokenNumber}
+                    </div>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-row">
+                        <span class="receipt-label">📅 Date</span>
+                        <span class="receipt-value">${data.date}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">🕐 Time</span>
+                        <span class="receipt-value">${data.time}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">🚗 Vehicle No.</span>
+                        <span class="receipt-value">${data.vehicleNo}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">💳 Payment Mode</span>
+                        <span class="receipt-value">${data.paymentMode === 'cash' ? '💵 Cash' : '📱 UPI'}</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-amount">
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                        Amount Paid
+                    </div>
+                    <div class="receipt-amount-value">₹ ${data.amount.toLocaleString('en-IN')}</div>
+                </div>
+                
+                <div class="receipt-footer">
+                    <div class="receipt-thankyou">🙏 Thank You! Visit Again 🙏</div>
+                    <div style="margin-top: 12px; font-weight: 600;">Drive Safe & Stay Blessed</div>
+                    <div style="font-size: 0.7rem; margin-top: 15px; opacity: 0.5;">
+                        This is a computer-generated receipt<br>
+                        Token: ${data.token}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // SHOW RECEIPT MODAL
+        // ============================================
+        function showReceipt(data) {
+            currentReceiptData = data;
+            const receiptHTML = generateReceiptHTML(data);
+            document.getElementById('receiptContent').innerHTML = receiptHTML;
+            document.getElementById('receiptModal').classList.add('active');
+            
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ============================================
+        // CLOSE RECEIPT MODAL
+        // ============================================
+        function closeReceipt() {
+            document.getElementById('receiptModal').classList.remove('active');
+            currentReceiptData = null;
+            
+            // Restore body scroll
+            document.body.style.overflow = '';
+            
+            // Focus back to vehicle number input
+            document.getElementById('vehicleNo').focus();
+        }
+
+        // ============================================
+        // SEND VIA WHATSAPP
+        // ============================================
+        function sendViaWhatsApp() {
+            if (!currentReceiptData) {
+                showNotification('No receipt data found', 'error');
+                return;
+            }
+
+            const receiptElement = document.getElementById('receiptContent');
+            
+            // Show loading state
+            const whatsappBtn = document.querySelector('.whatsapp-btn');
+            const originalText = whatsappBtn.innerHTML;
+            whatsappBtn.innerHTML = '⏳ Generating image...';
+            whatsappBtn.disabled = true;
+            
+            html2canvas(receiptElement, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                allowTaint: false,
+                useCORS: true
+            }).then(canvas => {
+                // Convert to blob
+                canvas.toBlob(function(blob) {
+                    // Create file from blob
+                    const file = new File([blob], `receipt-${currentReceiptData.token}.png`, { 
+                        type: 'image/png' 
+                    });
+                    
+                    // Check if file size is manageable (max 5MB for WhatsApp)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showNotification('Image too large. Downloading instead...', 'error');
+                        downloadReceiptImage(canvas);
+                        resetWhatsAppButton(whatsappBtn, originalText);
+                        return;
+                    }
+                    
+                    // Prepare share text
+                    const shareText = 
+                        `*ELITE AUTO WASH EXPRESS* ✨\n` +
+                        `*Divine Shrine for Your Blessed Ride*\n\n` +
+                        `🎫 *Token:* ${currentReceiptData.token}\n` +
+                        `🚗 *Vehicle:* ${currentReceiptData.vehicleNo}\n` +
+                        `💰 *Amount:* ₹${currentReceiptData.amount.toLocaleString('en-IN')}\n` +
+                        `💳 *Payment:* ${currentReceiptData.paymentMode === 'cash' ? 'Cash' : 'UPI'}\n` +
+                        `📅 *Date:* ${currentReceiptData.date}\n\n` +
+                        `🙏 *Thank You! Visit Again* 🙏`;
+                    
+                    // Try Web Share API first
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'ELITE AUTO WASH EXPRESS - Receipt',
+                            text: shareText
+                        })
+                            .then(() => {
+                                showNotification('Receipt shared successfully! ✅', 'success');
+                            })
+                            .catch(err => {
+                                console.log('Share cancelled or failed:', err);
+                                downloadReceiptImage(canvas);
+                            })
+                            .finally(() => {
+                                resetWhatsAppButton(whatsappBtn, originalText);
+                            });
+                    } else {
+                        // Fallback: Download image
+                        downloadReceiptImage(canvas);
+                        resetWhatsAppButton(whatsappBtn, originalText);
+                    }
+                }, 'image/png');
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                showNotification('Error generating receipt image. Please try again.', 'error');
+                resetWhatsAppButton(whatsappBtn, originalText);
+            });
+        }
+
+        // Helper to reset WhatsApp button
+        function resetWhatsAppButton(button, originalText) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+
+        // ============================================
+        // DOWNLOAD RECEIPT IMAGE (FALLBACK)
+        // ============================================
+        function downloadReceiptImage(canvas) {
+            const link = document.createElement('a');
+            link.download = `receipt-${currentReceiptData.token}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+            showNotification('Receipt downloaded! You can share it manually 📥', 'success');
+        }
+
+        // ============================================
+        // SHOW NOTIFICATION
+        // ============================================
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existing = document.querySelectorAll('.notification');
+            existing.forEach(n => {
+                n.style.opacity = '0';
+                n.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => n.remove(), 300);
+            });
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ============================================
+        // FORM SUBMISSION
+        // ============================================
+        document.getElementById('billingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            
+            // Get form values
+            const vehicleNo = document.getElementById('vehicleNo').value.trim().toUpperCase();
+            const amount = document.getElementById('amount').value;
+            
+            // Validate vehicle number
+            if (!vehicleNo || vehicleNo.length < 2) {
+                showNotification('Please enter a valid vehicle number 🚗', 'error');
+                document.getElementById('vehicleNo').focus();
+                return;
+            }
+            
+            // Validate amount
+            if (!amount || amount <= 0 || amount > 999999) {
+                showNotification('Please enter a valid amount (1 - 999999) 💰', 'error');
+                document.getElementById('amount').focus();
+                return;
+            }
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="loading-spinner"></span> Generating...';
+            
+            try {
+                // Generate sequential token
+                const tokenData = await generateToken();
+                const dateTime = formatDateTime();
+                
+                const receiptData = {
+                    token: tokenData.token,
+                    tokenNumber: tokenData.tokenNumber,
+                    vehicleNo: vehicleNo,
+                    amount: parseInt(amount),
+                    paymentMode: selectedPaymentMode,
+                    date: dateTime.date,
+                    time: dateTime.time,
+                    isoDate: dateTime.isoDate,
+                    isoTime: dateTime.isoTime
+                };
+                
+                // Save to Firestore
+                await saveToFirestore(receiptData);
+                
+                // Show receipt modal
+                showReceipt(receiptData);
+                
+                // Reset form
+                document.getElementById('billingForm').reset();
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                document.querySelector('.payment-option[data-mode="cash"]').classList.add('selected');
+                selectedPaymentMode = 'cash';
+                
+                // Show success notification
+                showNotification(`🎉 Receipt ${tokenData.token} generated successfully!`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error generating receipt. Please try again. ❌', 'error');
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                btnText.textContent = 'Generate Receipt';
+            }
+        });
+
+        // ============================================
+        // KEYBOARD SHORTCUTS
+        // ============================================
+        document.addEventListener('keydown', function(e) {
+            // Escape to close modal
+            if (e.key === 'Escape' && document.getElementById('receiptModal').classList.contains('active')) {
+                closeReceipt();
+            }
+            
+            // Ctrl+Enter to submit form
+            if (e.ctrlKey && e.key === 'Enter' && !document.getElementById('receiptModal').classList.contains('active')) {
+                document.getElementById('billingForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // ============================================
+        // CLOSE MODAL ON OVERLAY CLICK
+        // ============================================
+        document.getElementById('receiptModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReceipt();
+            }
+        });
+
+        // ============================================
+        // AUTO-FOCUS ON LOAD
+        // ============================================
+        window.addEventListener('load', function() {
+            // Small delay for smooth animation
+            setTimeout(() => {
+                document.getElementById('vehicleNo').focus();
+            }, 600);
+        });
+
+        // ============================================
+        // AUTO-CONVERT VEHICLE NUMBER TO UPPERCASE
+        // ============================================
+        document.getElementById('vehicleNo').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+
+        // ============================================
+        // PREVENT NON-NUMERIC INPUT IN AMOUNT FIELD
+        // ============================================
+        document.getElementById('amount').addEventListener('keydown', function(e) {
+            // Allow: backspace, delete, tab, escape, enter, arrows
+            if ([46, 8, 9, 27, 13, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true) ||
+                // Allow: home, end
+                (e.keyCode >= 35 && e.keyCode <= 36)) {
+                return;
+            }
+            // Ensure it's a number
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+                (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+
+        // ============================================
+        // INITIALIZATION LOGS
+        // ============================================
+        console.log('🚗 ELITE AUTO WASH EXPRESS - Billing System Ready');
+        console.log('✨ Divine Shrine for Your Blessed Ride');
+        console.log('📱 Responsive Design Active');
+        console.log('🎫 Token Format: ELITE-XXXX (Sequential)');
+        console.log('🖼️ Custom Logo Integration Ready');
+        
+        // Log Firebase connection status
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                console.log('✅ Firebase Connected');
+            } else {
+                console.log('✅ Firebase Ready (Anonymous)');
+            }
+        });
+    </script>
+</body>
+</html>
