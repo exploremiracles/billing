@@ -1,5 +1,4 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -381,17 +380,12 @@
             margin-bottom: 20px;
         }
 
-        .receipt-logo-img { 
-    width: 260px;
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
-    margin-bottom: 15px;
-    display: block;
-    /* Add these properties to ensure proper rendering */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-}
+        .receipt-logo-img {
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
 
         .receipt-tagline {
             font-size: 0.8rem;
@@ -614,7 +608,8 @@
                 padding: 28px 22px;
             }
 
-            
+            .receipt-logo-img {
+                width: 260px;
             }
 
             .receipt-token {
@@ -720,6 +715,10 @@
 
             .receipt {
                 padding: 22px 16px;
+            }
+
+            .receipt-logo-img {
+                width: 110px;
             }
 
             .receipt-tagline {
@@ -1178,16 +1177,12 @@ const firebaseConfig = {
             whatsappBtn.innerHTML = '⏳ Generating image...';
             whatsappBtn.disabled = true;
             
-           html2canvas(receiptElement, {
-    scale: 3,  // Increase scale for better quality on mobile (was 2)
-    backgroundColor: '#ffffff',
-    logging: false,
-    allowTaint: false,
-    useCORS: true,
-    width: receiptElement.scrollWidth,  // Ensure proper width
-    height: receiptElement.scrollHeight,  // Ensure proper height
-    windowWidth: receiptElement.scrollWidth,  // Match viewport width
-    windowHeight: receiptElement.scrollHeight
+            html2canvas(receiptElement, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                allowTaint: false,
+                useCORS: true
             }).then(canvas => {
                 canvas.toBlob(function(blob) {
                     const file = new File([blob], `receipt-${currentReceiptData.token}.png`, { 
@@ -1377,4 +1372,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
