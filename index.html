@@ -382,7 +382,7 @@
 
         .receipt-logo-img {
             width: 300px;
-            height: auto;
+            height: 200px;
             object-fit: contain;
             margin-bottom: 15px;
         }
@@ -1096,7 +1096,7 @@ const firebaseConfig = {
         function generateReceiptHTML(data) {
             return `
                 <div class="receipt-header">
-                    <img src="logo.jpg" alt="ELITE AUTO WASH EXPRESS" class="receipt-logo-img">
+                    <img src="logo.jpg" alt="ELITE AUTO WASH EXPRESS" class="receipt-logo-img" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 15px;">
                     <div class="receipt-tagline">Divine Shrine for Your Blessed Ride</div>
                     <div class="receipt-token">${data.token}</div>
                     <div style="font-size: 0.65rem; color: #666; margin-top: 5px; font-weight: 500;">
