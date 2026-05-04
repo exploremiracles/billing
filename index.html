@@ -383,9 +383,14 @@
 
         .receipt-logo-img { 
     width: 260px;
+    max-width: 100%;
     height: auto;
     object-fit: contain;
     margin-bottom: 15px;
+    display: block;
+    /* Add these properties to ensure proper rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
         .receipt-tagline {
@@ -1173,12 +1178,16 @@ const firebaseConfig = {
             whatsappBtn.innerHTML = '⏳ Generating image...';
             whatsappBtn.disabled = true;
             
-            html2canvas(receiptElement, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                allowTaint: false,
-                useCORS: true
+           html2canvas(receiptElement, {
+    scale: 3,  // Increase scale for better quality on mobile (was 2)
+    backgroundColor: '#ffffff',
+    logging: false,
+    allowTaint: false,
+    useCORS: true,
+    width: receiptElement.scrollWidth,  // Ensure proper width
+    height: receiptElement.scrollHeight,  // Ensure proper height
+    windowWidth: receiptElement.scrollWidth,  // Match viewport width
+    windowHeight: receiptElement.scrollHeight
             }).then(canvas => {
                 canvas.toBlob(function(blob) {
                     const file = new File([blob], `receipt-${currentReceiptData.token}.png`, { 
